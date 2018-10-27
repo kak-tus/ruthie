@@ -1,0 +1,15 @@
+2018-10-27 v0.1.5
+  - Speedup ACK.
+
+2018-10-27 v0.1.4
+  - Speedup ACK.
+
+2018-10-27 v0.1.3
+  - Speedup producer.
+  - API changed.
+
+2018-10-27 v0.1.2
+  - Backlog (received, but not ACK'ed messages) check.
+
+2018-10-27 v0.1.1
+  - First release.

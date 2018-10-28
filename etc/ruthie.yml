@@ -13,13 +13,13 @@ log:
 writer:
   clickhouseURI: 'http://${RUTHIE_CLICKHOUSE_ADDR}/?write_timeout=60&alt_hosts=${RUTHIE_CLICKHOUSE_ALTADDRS}'
   batch: { _ref: { name: "RUTHIE_BATCH", default: 10000 } }
-  period: { _ref: { name: "RUTHIE_PERIOD", default: 6000000 } }
+  period: { _ref: { name: "RUTHIE_PERIOD", default: 60000000000 } }
 
 reader:
   redis:
     addrs: { _ref: { name: "RUTHIE_REDIS_ADDR" } }
   consumer: { _ref: { name: "RUTHIE_CONSUMER_NAME" } }
-  shardsCount: { _ref: { name: "RUTHIE_SHARS_COUNT", default: 10 } }
+  shardsCount: { _ref: { name: "RUTHIE_SHARDS_COUNT", default: 10 } }
   prefetchCount: { _ref: { name: "RUTHIE_PREFETCH_COUNT", default: 30000 } }
   pendingBufferSize: { _ref: { name: "RUTHIE_PENDING_BUFFER_SIZE", default: 1000000 } }
   pipeBufferSize: { _ref: { name: "RUTHIE_PIPE_BUFFER_SIZE", default: 50000 } }

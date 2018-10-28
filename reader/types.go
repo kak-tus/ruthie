@@ -9,7 +9,7 @@ import (
 type Reader struct {
 	log *zap.SugaredLogger
 	cnf readerConfig
-	qu  *ami.Qu
+	cn  *ami.Consumer
 	c   chan ami.Message
 }
 

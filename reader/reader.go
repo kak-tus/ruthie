@@ -27,8 +27,8 @@ func init() {
 
 			addrs := strings.Split(cnf.Redis.Addrs, ",")
 
-			qu, err := ami.NewQu(
-				ami.Options{
+			cn, err := ami.NewConsumer(
+				ami.ConsumerOptions{
 					Name:              "ruthie",
 					Consumer:          cnf.Consumer,
 					ShardsCount:       cnf.ShardsCount,
@@ -49,7 +49,7 @@ func init() {
 			rdr = &Reader{
 				log: applog.GetLogger().Sugar(),
 				cnf: cnf,
-				qu:  qu,
+				cn:  cn,
 			}
 
 			rdr.log.Info("Started reader")
@@ -61,7 +61,7 @@ func init() {
 	event.Stop.AddHandler(
 		func() error {
 			rdr.log.Info("Stop reader")
-			rdr.qu.Close()
+			rdr.cn.Close()
 			rdr.log.Info("Stopped reader")
 			return nil
 		},
@@ -75,7 +75,7 @@ func GetReader() *Reader {
 
 // Start reader
 func (r *Reader) Start() chan ami.Message {
-	return r.qu.Consume()
+	return r.cn.Start()
 }
 
 // IsAccessible checks Redis status
@@ -86,10 +86,10 @@ func (r *Reader) IsAccessible() bool {
 
 // Stop reader
 func (r *Reader) Stop() {
-	r.qu.CloseConsumer()
+	r.cn.Stop()
 }
 
 // Ack message
 func (r *Reader) Ack(m ami.Message) {
-	r.qu.Ack(m)
+	r.cn.Ack(m)
 }

@@ -36,7 +36,7 @@ func init() {
 					Block:             time.Second,
 					PendingBufferSize: cnf.PendingBufferSize,
 					PipeBufferSize:    cnf.PipeBufferSize,
-					PipePeriod:        time.Microsecond * 10,
+					PipePeriod:        time.Microsecond * 1000,
 				},
 				&redis.ClusterOptions{
 					Addrs: addrs,
@@ -86,7 +86,9 @@ func (r *Reader) IsAccessible() bool {
 
 // Stop reader
 func (r *Reader) Stop() {
+	r.log.Info("Stop consumer")
 	r.cn.Stop()
+	r.log.Info("Stopped consumer")
 }
 
 // Ack message

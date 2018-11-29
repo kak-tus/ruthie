@@ -45,7 +45,6 @@ Usage example
 		qu.Send(body)
 		qu.Close()
 	}
-}
 
 */
 package message

@@ -32,7 +32,7 @@ RUTHIE_REDIS_ADDR=redis-cluster.example.com:7000
 
 ### RUTHIE_CONSUMER_NAME
 
-Unique consumer name per stream in Redis Cluster.
+Unique consumer name per queue in Redis Cluster.
 
 ```
 RUTHIE_CONSUMER_NAME=alice
@@ -56,13 +56,13 @@ RUTHIE_PERIOD=60000000000
 
 ### RUTHIE_SHARDS_COUNT
 
-Ami queues spreads along cluster by default Redis Cluster ability - shards. Every queue has RUTHIE_SHARDS_COUNT number of streams with same name, but with different shard number. So different streams are placed at different Redis Cluster nodes.
+Ami queues spreads along cluster by default Redis Cluster ability - shards. Every queue has setuped number of streams with same name, but with different shard number. So different streams are placed at different Redis Cluster nodes.
 
 So bigger value get better spreading of queue along cluster. But huge value is not better idea - it got bigger memory usage. Normal value for cluster with 5 masters and 5 slaves - from 5 to 10.
 
 May be later will be added auto-sharding option to place queue on each Redis Cluster node.
 
-Shards count must have identical values in all producers and consumers.
+Shards count must have identical values in all producers and consumers of this queue.
 
 ```
 RUTHIE_SHARDS_COUNT=10
@@ -70,7 +70,9 @@ RUTHIE_SHARDS_COUNT=10
 
 ### RUTHIE_PREFETCH_COUNT
 
-Maximum amout of messages that can be read from queue at same time. Bigger value get better perfomance, but RUTHIE_BATCH must be bigger too then default value.
+Maximum amount of messages that can be read from queue at same time.
+
+Bigger value get better perfomance, but RUTHIE_BATCH must be bigger too if you setup greater value.
 
 ```
 RUTHIE_PREFETCH_COUNT=30000

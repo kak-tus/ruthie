@@ -15,7 +15,10 @@ FROM alpine:3.8
 COPY --from=build /go/bin/ruthie /usr/local/bin/ruthie
 COPY etc /etc/
 
-RUN adduser -DH user
+RUN \
+  apk add --no-cache \
+    tzdata \
+  && adduser -DH user
 
 USER user
 

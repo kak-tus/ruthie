@@ -1,3 +1,7 @@
+2019-02-21 v0.1.6
+  - Support for ClickHouse username and password: RUTHIE_CLICKHOUSE_USERNAME,
+    RUTHIE_CLICKHOUSE_PASSWORD.
+
 2019-02-21 v0.1.5
   - Configurable queue name with env RUTHIE_QUEUE_NAME.
 

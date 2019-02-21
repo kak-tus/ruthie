@@ -11,7 +11,7 @@ log:
     disableTimestamp: true
 
 writer:
-  clickhouseURI: 'http://${RUTHIE_CLICKHOUSE_ADDR}/?write_timeout=60&alt_hosts=${RUTHIE_CLICKHOUSE_ALTADDRS}'
+  clickhouseURI: 'http://${RUTHIE_CLICKHOUSE_ADDR}/?write_timeout=60&alt_hosts=${RUTHIE_CLICKHOUSE_ALTADDRS}&username=${RUTHIE_CLICKHOUSE_USERNAME}&password=${RUTHIE_CLICKHOUSE_PASSWORD}'
   batch: { _ref: { name: "RUTHIE_BATCH", default: 10000 } }
   period: { _ref: { name: "RUTHIE_PERIOD", default: 60000000000 } }
 

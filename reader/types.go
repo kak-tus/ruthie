@@ -7,20 +7,20 @@ import (
 
 // Reader hold object
 type Reader struct {
-	log *zap.SugaredLogger
-	cnf readerConfig
-	cn  *ami.Consumer
 	c   chan ami.Message
+	cn  *ami.Consumer
+	cnf readerConfig
+	log *zap.SugaredLogger
 }
 
 type readerConfig struct {
-	Redis             redisConfig
 	Consumer          string
-	QueueName         string
-	ShardsCount       int8
-	PrefetchCount     int64
 	PendingBufferSize int64
 	PipeBufferSize    int64
+	PrefetchCount     int64
+	QueueName         string
+	Redis             redisConfig
+	ShardsCount       int8
 }
 
 type redisConfig struct {

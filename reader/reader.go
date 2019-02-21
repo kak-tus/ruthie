@@ -29,14 +29,14 @@ func init() {
 
 			cn, err := ami.NewConsumer(
 				ami.ConsumerOptions{
-					Name:              cnf.QueueName,
-					Consumer:          cnf.Consumer,
-					ShardsCount:       cnf.ShardsCount,
-					PrefetchCount:     cnf.PrefetchCount,
 					Block:             time.Second,
+					Consumer:          cnf.Consumer,
+					Name:              cnf.QueueName,
 					PendingBufferSize: cnf.PendingBufferSize,
 					PipeBufferSize:    cnf.PipeBufferSize,
 					PipePeriod:        time.Microsecond * 1000,
+					PrefetchCount:     cnf.PrefetchCount,
+					ShardsCount:       cnf.ShardsCount,
 				},
 				&redis.ClusterOptions{
 					Addrs: addrs,
@@ -47,9 +47,9 @@ func init() {
 			}
 
 			rdr = &Reader{
-				log: applog.GetLogger().Sugar(),
-				cnf: cnf,
 				cn:  cn,
+				cnf: cnf,
+				log: applog.GetLogger().Sugar(),
 			}
 
 			rdr.log.Info("Started reader")

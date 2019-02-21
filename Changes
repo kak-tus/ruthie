@@ -1,3 +1,6 @@
+2019-02-21 v0.1.5
+  - Configurable queue name with env RUTHIE_QUEUE_NAME.
+
 2018-11-22 v0.1.4
   - Speedup.
 

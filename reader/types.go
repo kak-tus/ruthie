@@ -16,6 +16,7 @@ type Reader struct {
 type readerConfig struct {
 	Redis             redisConfig
 	Consumer          string
+	QueueName         string
 	ShardsCount       int8
 	PrefetchCount     int64
 	PendingBufferSize int64

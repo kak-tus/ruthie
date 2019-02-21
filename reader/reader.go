@@ -29,7 +29,7 @@ func init() {
 
 			cn, err := ami.NewConsumer(
 				ami.ConsumerOptions{
-					Name:              "ruthie",
+					Name:              cnf.QueueName,
 					Consumer:          cnf.Consumer,
 					ShardsCount:       cnf.ShardsCount,
 					PrefetchCount:     cnf.PrefetchCount,

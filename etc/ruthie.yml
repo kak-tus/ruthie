@@ -19,6 +19,7 @@ reader:
   redis:
     addrs: { _ref: { name: "RUTHIE_REDIS_ADDR" } }
   consumer: { _ref: { name: "RUTHIE_CONSUMER_NAME" } }
+  queueName: { _ref: { name: "RUTHIE_QUEUE_NAME" } }
   shardsCount: { _ref: { name: "RUTHIE_SHARDS_COUNT", default: 10 } }
   prefetchCount: { _ref: { name: "RUTHIE_PREFETCH_COUNT", default: 30000 } }
   pendingBufferSize: { _ref: { name: "RUTHIE_PENDING_BUFFER_SIZE", default: 1000000 } }

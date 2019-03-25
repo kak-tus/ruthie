@@ -2,16 +2,25 @@ package ami
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/go-redis/redis"
 )
 
 func newClient(opt clientOptions) (*client, error) {
+	// Fix for users, that forget set timeouts
+	if opt.ropt.ReadTimeout < time.Second*30 {
+		opt.ropt.ReadTimeout = time.Second * 30
+	}
+	if opt.ropt.WriteTimeout < time.Second*30 {
+		opt.ropt.WriteTimeout = time.Second * 30
+	}
+
 	rDB := redis.NewClusterClient(opt.ropt)
 
 	c := &client{
-		rDB: rDB,
 		opt: opt,
+		rDB: rDB,
 	}
 
 	err := c.init()
@@ -39,9 +48,13 @@ func (c *client) createShard(stream string, group string) error {
 	xinfo := redis.NewCmd("XINFO", "STREAM", stream)
 
 	err := c.rDB.Process(xinfo)
+	// It is not an error, we only check stream existance
 	if err != nil {
 		xgroup := redis.NewCmd("XGROUP", "CREATE", stream, group, "$", "MKSTREAM")
-		c.rDB.Process(xgroup)
+		err := c.rDB.Process(xgroup)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Check after creation

@@ -34,11 +34,10 @@
     "internal/hashtag",
     "internal/pool",
     "internal/proto",
-    "internal/singleflight",
     "internal/util"
   ]
-  revision = "b3d9bf10f6666b2ee5100a6f3f84f4caf3b4e37d"
-  version = "v6.14.2"
+  revision = "d22fde8721cc915a55aeb6b00944a76a92bfeb6e"
+  version = "v6.15.2"
 
 [[projects]]
   name = "github.com/iph0/conf"
@@ -65,8 +64,8 @@
 [[projects]]
   name = "github.com/kak-tus/ami"
   packages = ["."]
-  revision = "d20dd715380a93fc7c4aac37d93cb65a061ab0af"
-  version = "v0.1.7"
+  revision = "7aff6df2ac81c3bd3f47d2ab0d7525883f9b4f7b"
+  version = "v0.1.10"
 
 [[projects]]
   name = "github.com/kak-tus/healthcheck"
@@ -140,6 +139,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "380b81b7a0a4e33c7f0dd28fba159bfc77ad9a14046cc9e1f97c8ce5c5206118"
+  inputs-digest = "be297fdef91d3aa88912ca78f67ba4459c24916faca464019cb299694b5b7222"
   solver-name = "gps-cdcl"
   solver-version = 1

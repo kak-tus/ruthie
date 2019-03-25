@@ -1,29 +1,8 @@
-# Ami
+/*
+Package ami - Go client to reliable queues based on Redis Cluster Streams https://redis.io/topics/streams-intro.
 
-Go client to reliable queues based on [Redis Cluster Streams](https://redis.io/topics/streams-intro).
+Producer example
 
-[Ami docs](https://godoc.org/github.com/kak-tus/ami).
-
-## Consume/produce perfomance
-
-Perfomance is dependent from:
-- Redis Cluster nodes count;
-- ping RTT from client to Redis Cluster master nodes;
-- network speed between nodes;
-- message sizes;
-- Ami configuration.
-
-As example, 10-nodes Redis Cluster with half of nodes in other datacenter (50 msec ping), 1 master/1 slave, with message "{}" got:
-```
-$ go run examples/perfomance/main.go
-Produced 1000000 in 3.423883 sec, rps 292066.022156
-Consumed 151000 in 1.049238 sec, rps 143913.931722
-Acked 151000 in 0.973587 sec, rps 155096.612263
-```
-
-## Producer example
-
-```
 	type errorLogger struct{}
 
 	func (l *errorLogger) AmiError(err error) {
@@ -54,11 +33,9 @@ Acked 151000 in 0.973587 sec, rps 155096.612263
 	}
 
 	pr.Close()
-```
 
-## Consumer example
+Consumer example
 
-```
 	type errorLogger struct{}
 
 	func (l *errorLogger) AmiError(err error) {
@@ -109,4 +86,6 @@ Acked 151000 in 0.973587 sec, rps 155096.612263
 	wg.Wait()
 
 	cn.Close()
-```
+
+*/
+package ami

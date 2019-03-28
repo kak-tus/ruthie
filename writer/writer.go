@@ -68,6 +68,8 @@ func init() {
 		func() error {
 			wrt.log.Info("Stop writer")
 
+			wrt.retr.Stop()
+
 			wrt.rdr.Stop()
 
 			wrt.m.Lock()
@@ -162,7 +164,14 @@ func (w *Writer) sendAll() {
 func (w *Writer) sendOne(query string) {
 	if w.toSendCnts[query] > 0 {
 		started := time.Now()
-		w.send(query, w.toSendVals[query][0:w.toSendCnts[query]])
+		err := w.send(query, w.toSendVals[query][0:w.toSendCnts[query]])
+		if err != nil {
+			// If we got error here - this means, that stop of the service
+			// is requested. Because retrier do retries infinitely, while stopped.
+			w.log.Error(err)
+			w.toSendCnts[query] = 0
+			return
+		}
 
 		diffSend := time.Now().Sub(started)
 		started = time.Now()
@@ -183,8 +192,8 @@ func (w *Writer) sendOne(query string) {
 	}
 }
 
-func (w *Writer) send(query string, vals []*toSend) {
-	w.retr.Do(func() *retrier.Error {
+func (w *Writer) send(query string, vals []*toSend) error {
+	err := w.retr.Do(func() *retrier.Error {
 		tx, err := w.db.Begin()
 		if err != nil {
 			w.log.Error("Start transaction failed: ", err)
@@ -193,8 +202,12 @@ func (w *Writer) send(query string, vals []*toSend) {
 
 		stmt, err := tx.Prepare(query)
 		if err != nil {
-			tx.Rollback()
 			w.log.Error("Prepare query failed: ", err)
+
+			err = tx.Rollback()
+			if err != nil {
+				w.log.Error("Rollback failed: ", err)
+			}
 
 			for _, v := range vals {
 				v.failed = true
@@ -224,7 +237,10 @@ func (w *Writer) send(query string, vals []*toSend) {
 		}
 
 		if succeded == 0 {
-			tx.Rollback()
+			err := tx.Rollback()
+			if err != nil {
+				w.log.Error("Rollback failed: ", err)
+			}
 			return nil
 		}
 
@@ -236,6 +252,13 @@ func (w *Writer) send(query string, vals []*toSend) {
 
 		return nil
 	})
+	if err != nil {
+		// If we got error here - this means, that stop of the service
+		// is requested. Because retrier do retries infinitely, while stopped.
+		return err
+	}
+
+	return nil
 }
 
 func (w Writer) makeCHArray(vals []interface{}) []interface{} {

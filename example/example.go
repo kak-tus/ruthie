@@ -9,19 +9,19 @@ import (
 )
 
 func main() {
-	qu, err := ami.NewQu(
-		ami.Options{
+	qu, err := ami.NewProducer(
+		ami.ProducerOptions{
+			ErrorNotifier:     &errorLogger{},
 			Name:              "ruthie",
-			Consumer:          "alice",
-			ShardsCount:       10,
-			PrefetchCount:     100,
-			Block:             time.Second,
 			PendingBufferSize: 10000000,
 			PipeBufferSize:    50000,
 			PipePeriod:        time.Microsecond * 1000,
+			ShardsCount:       10,
 		},
 		&redis.ClusterOptions{
-			Addrs: []string{"172.17.0.1:7001", "172.17.0.1:7002"},
+			Addrs:        []string{"172.17.0.1:7001", "172.17.0.1:7002"},
+			ReadTimeout:  time.Second * 60,
+			WriteTimeout: time.Second * 60,
 		},
 	)
 	if err != nil {
@@ -39,4 +39,10 @@ func main() {
 
 	qu.Send(body)
 	qu.Close()
+}
+
+type errorLogger struct{}
+
+func (l *errorLogger) AmiError(err error) {
+	println("Got error from Ami:", err.Error())
 }

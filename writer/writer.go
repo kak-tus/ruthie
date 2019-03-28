@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -11,8 +12,10 @@ import (
 	"git.aqq.me/go/app/applog"
 	"git.aqq.me/go/app/event"
 	"git.aqq.me/go/retrier"
+	"github.com/go-redis/redis"
 	"github.com/iph0/conf"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/kak-tus/ami"
 	"github.com/kak-tus/ruthie/message"
 	"github.com/kak-tus/ruthie/reader"
 	"github.com/kshvakov/clickhouse"
@@ -46,6 +49,8 @@ func init() {
 				return err
 			}
 
+			addrs := strings.Split(cnf.Redis.Addrs, ",")
+
 			wrt = &Writer{
 				log:        applog.GetLogger().Sugar(),
 				cnf:        cnf,
@@ -57,6 +62,27 @@ func init() {
 				toSendVals: make(map[string][]*toSend),
 				retr:       retrier.New(retrier.Config{RetryPolicy: []time.Duration{time.Second * 5}}),
 			}
+
+			prod, err := ami.NewProducer(
+				ami.ProducerOptions{
+					ErrorNotifier:     wrt,
+					Name:              cnf.QueueNameFailed,
+					PendingBufferSize: 10000000,
+					PipeBufferSize:    50000,
+					PipePeriod:        time.Microsecond * 1000,
+					ShardsCount:       10,
+				},
+				&redis.ClusterOptions{
+					Addrs:        addrs,
+					ReadTimeout:  time.Second * 60,
+					WriteTimeout: time.Second * 60,
+				},
+			)
+			if err != nil {
+				return err
+			}
+
+			wrt.prod = prod
 
 			wrt.log.Info("Started writer")
 
@@ -71,6 +97,8 @@ func init() {
 			wrt.retr.Stop()
 
 			wrt.rdr.Stop()
+
+			wrt.prod.Close()
 
 			wrt.m.Lock()
 			wrt.db.Close()
@@ -107,11 +135,13 @@ func (w Writer) Start() {
 		err := w.dec.UnmarshalFromString(msg.Body, &parsed)
 		if err != nil {
 			w.log.Error("Decode failed: ", err)
+			w.prod.Send(msg.Body)
 			w.rdr.Ack(msg)
 			continue
 		}
 
 		if len(parsed.Query) == 0 {
+			w.prod.Send(msg.Body)
 			w.rdr.Ack(msg)
 			continue
 		}
@@ -179,6 +209,7 @@ func (w *Writer) sendOne(query string) {
 		for _, v := range w.toSendVals[query][0:w.toSendCnts[query]] {
 			if v.failed {
 				w.log.Error("Failed: ", v.msgAmi.Body)
+				w.prod.Send(v.msgAmi.Body)
 			}
 
 			w.rdr.Ack(v.msgAmi)
@@ -288,4 +319,8 @@ func (w Writer) makeCHArray(vals []interface{}) []interface{} {
 	}
 
 	return data
+}
+
+func (w *Writer) AmiError(err error) {
+	w.log.Error(err)
 }

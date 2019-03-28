@@ -20,6 +20,7 @@ type Writer struct {
 	dec        jsoniter.API
 	log        *zap.SugaredLogger
 	m          *sync.Mutex
+	prod       *ami.Producer
 	rdr        *reader.Reader
 	retr       *retrier.Retrier
 	toSendCnts map[string]int
@@ -27,13 +28,19 @@ type Writer struct {
 }
 
 type writerConfig struct {
-	Batch         int
-	ClickhouseURI string
-	Period        time.Duration
+	Batch           int
+	ClickhouseURI   string
+	Period          time.Duration
+	QueueNameFailed string
+	Redis           redisConfig
 }
 
 type toSend struct {
 	failed    bool
 	msgAmi    ami.Message
 	msgParsed message.Message
+}
+
+type redisConfig struct {
+	Addrs string
 }

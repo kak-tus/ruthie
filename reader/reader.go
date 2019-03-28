@@ -27,10 +27,16 @@ func init() {
 
 			addrs := strings.Split(cnf.Redis.Addrs, ",")
 
+			rdr = &Reader{
+				cnf: cnf,
+				log: applog.GetLogger().Sugar(),
+			}
+
 			cn, err := ami.NewConsumer(
 				ami.ConsumerOptions{
 					Block:             time.Second,
 					Consumer:          cnf.Consumer,
+					ErrorNotifier:     rdr,
 					Name:              cnf.QueueName,
 					PendingBufferSize: cnf.PendingBufferSize,
 					PipeBufferSize:    cnf.PipeBufferSize,
@@ -39,18 +45,16 @@ func init() {
 					ShardsCount:       cnf.ShardsCount,
 				},
 				&redis.ClusterOptions{
-					Addrs: addrs,
+					Addrs:        addrs,
+					ReadTimeout:  time.Second * 60,
+					WriteTimeout: time.Second * 60,
 				},
 			)
 			if err != nil {
 				return err
 			}
 
-			rdr = &Reader{
-				cn:  cn,
-				cnf: cnf,
-				log: applog.GetLogger().Sugar(),
-			}
+			rdr.cn = cn
 
 			rdr.log.Info("Started reader")
 
@@ -94,4 +98,8 @@ func (r *Reader) Stop() {
 // Ack message
 func (r *Reader) Ack(m ami.Message) {
 	r.cn.Ack(m)
+}
+
+func (r *Reader) AmiError(err error) {
+	r.log.Error(err)
 }

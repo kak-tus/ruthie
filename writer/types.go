@@ -15,25 +15,25 @@ import (
 
 // Writer hold object
 type Writer struct {
-	log        *zap.SugaredLogger
 	cnf        writerConfig
 	db         *sql.DB
 	dec        jsoniter.API
+	log        *zap.SugaredLogger
 	m          *sync.Mutex
 	rdr        *reader.Reader
-	toSendVals map[string][]*toSend
-	toSendCnts map[string]int
 	retr       *retrier.Retrier
+	toSendCnts map[string]int
+	toSendVals map[string][]*toSend
 }
 
 type writerConfig struct {
-	ClickhouseURI string
 	Batch         int
+	ClickhouseURI string
 	Period        time.Duration
 }
 
 type toSend struct {
-	msgParsed message.Message
-	msgAmi    ami.Message
 	failed    bool
+	msgAmi    ami.Message
+	msgParsed message.Message
 }

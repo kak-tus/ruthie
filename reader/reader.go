@@ -4,95 +4,64 @@ import (
 	"strings"
 	"time"
 
-	"git.aqq.me/go/app/appconf"
-	"git.aqq.me/go/app/applog"
-	"git.aqq.me/go/app/event"
 	"github.com/go-redis/redis"
-	"github.com/iph0/conf"
 	"github.com/kak-tus/ami"
+	"go.uber.org/zap"
 )
 
-var rdr *Reader
+func NewReader(cnf *Config, log *zap.SugaredLogger) (*Reader, error) {
+	addrs := strings.Split(cnf.Redis.Addrs, ",")
 
-func init() {
-	event.Init.AddHandler(
-		func() error {
-			cnfMap := appconf.GetConfig()["reader"]
+	rdr := &Reader{
+		cnf: cnf,
+		log: log,
+	}
 
-			var cnf readerConfig
-			err := conf.Decode(cnfMap, &cnf)
-			if err != nil {
-				return err
-			}
-
-			addrs := strings.Split(cnf.Redis.Addrs, ",")
-
-			rdr = &Reader{
-				cnf: cnf,
-				log: applog.GetLogger().Sugar(),
-			}
-
-			cn, err := ami.NewConsumer(
-				ami.ConsumerOptions{
-					Block:             time.Second,
-					Consumer:          cnf.Consumer,
-					ErrorNotifier:     rdr,
-					Name:              cnf.QueueName,
-					PendingBufferSize: cnf.PendingBufferSize,
-					PipeBufferSize:    cnf.PipeBufferSize,
-					PipePeriod:        time.Microsecond * 1000,
-					PrefetchCount:     cnf.PrefetchCount,
-					ShardsCount:       cnf.ShardsCount,
-				},
-				&redis.ClusterOptions{
-					Addrs:        addrs,
-					ReadTimeout:  time.Second * 60,
-					WriteTimeout: time.Second * 60,
-				},
-			)
-			if err != nil {
-				return err
-			}
-
-			rdr.cn = cn
-
-			rdr.log.Info("Started reader")
-
-			return nil
+	cn, err := ami.NewConsumer(
+		ami.ConsumerOptions{
+			Block:             time.Second,
+			Consumer:          cnf.Consumer,
+			ErrorNotifier:     rdr,
+			Name:              cnf.QueueName,
+			PendingBufferSize: cnf.PendingBufferSize,
+			PipeBufferSize:    cnf.PipeBufferSize,
+			PipePeriod:        time.Microsecond * 1000,
+			PrefetchCount:     cnf.PrefetchCount,
+			ShardsCount:       cnf.ShardsCount,
+		},
+		&redis.ClusterOptions{
+			Addrs:        addrs,
+			ReadTimeout:  time.Second * 60,
+			WriteTimeout: time.Second * 60,
 		},
 	)
+	if err != nil {
+		return nil, err
+	}
 
-	event.Stop.AddHandler(
-		func() error {
-			rdr.log.Info("Stop reader")
-			rdr.cn.Close()
-			rdr.log.Info("Stopped reader")
-			return nil
-		},
-	)
+	rdr.cn = cn
+
+	return rdr, nil
 }
 
-// GetReader return instance
-func GetReader() *Reader {
-	return rdr
-}
-
-// Start reader
 func (r *Reader) Start() chan ami.Message {
-	return r.cn.Start()
+	r.log.Info("Start reader")
+	ch := r.cn.Start()
+	r.log.Info("Started reader")
+	return ch
+}
+
+func (r *Reader) Stop() {
+	r.log.Info("Stop reader")
+	r.cn.Stop()
+	r.cn.Close()
+	r.log.Info("Stopped reader")
 }
 
 // IsAccessible checks Redis status
 func (r *Reader) IsAccessible() bool {
 	// TODO ping
 	return true
-}
-
-// Stop reader
-func (r *Reader) Stop() {
-	r.log.Info("Stop consumer")
-	r.cn.Stop()
-	r.log.Info("Stopped consumer")
 }
 
 // Ack message

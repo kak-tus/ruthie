@@ -1,46 +1,65 @@
 package main
 
 import (
+	"net/http"
+	"os"
+	"os/signal"
 	"sync"
 
-	"git.aqq.me/go/app/appconf"
-	"git.aqq.me/go/app/launcher"
-	"github.com/iph0/conf/envconf"
-	"github.com/iph0/conf/fileconf"
 	"github.com/kak-tus/healthcheck"
+	"github.com/kak-tus/ruthie/config"
 	"github.com/kak-tus/ruthie/reader"
 	"github.com/kak-tus/ruthie/writer"
+	"go.uber.org/zap"
 )
-
-func init() {
-	fileLdr := fileconf.NewLoader("etc", "/etc")
-	envLdr := envconf.NewLoader()
-
-	appconf.RegisterLoader("file", fileLdr)
-	appconf.RegisterLoader("env", envLdr)
-
-	appconf.Require("file:ruthie.yml")
-	appconf.Require("env:^RUTHIE_")
-}
 
 var rdr *reader.Reader
 var wrt *writer.Writer
 
 func main() {
-	launcher.Run(func() error {
-		healthcheck.Add("/healthcheck", func() (healthcheck.State, string) {
-			return healthcheck.StatePassing, "ok"
-		})
+	logger, err := zap.NewProduction()
+	if err != nil {
+		panic(err)
+	}
 
-		rdr = reader.GetReader()
+	log := logger.Sugar()
 
-		wrt = writer.GetWriter()
-		go wrt.Start()
+	cnf, err := config.NewConfig()
+	if err != nil {
+		log.Panic(err)
+	}
 
-		healthcheck.Add("/status", status)
-
-		return nil
+	hlth := healthcheck.NewHandler()
+	hlth.Add("/healthcheck", func() (healthcheck.State, string) {
+		return healthcheck.StatePassing, "ok"
 	})
+
+	rdr, err = reader.NewReader(&cnf.Reader, log)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	wrt, err = writer.NewWriter(&cnf.Writer, log, rdr)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	go wrt.Start()
+
+	hlth.Add("/status", status)
+
+	go http.ListenAndServe(cnf.Healthcheck.Listen, hlth)
+
+	st := make(chan os.Signal, 1)
+	signal.Notify(st, os.Interrupt)
+
+	<-st
+	log.Info("Stop")
+
+	wrt.Stop()
+
+	_ = log.Sync()
+
 }
 
 func status() (healthcheck.State, string) {

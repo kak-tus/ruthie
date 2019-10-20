@@ -9,11 +9,11 @@ import (
 type Reader struct {
 	c   chan ami.Message
 	cn  *ami.Consumer
-	cnf readerConfig
+	cnf *Config
 	log *zap.SugaredLogger
 }
 
-type readerConfig struct {
+type Config struct {
 	Consumer          string
 	PendingBufferSize int64
 	PipeBufferSize    int64

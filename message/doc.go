@@ -1,5 +1,5 @@
 /*
-Package message - message object for Ruthie - reliable (with Ami https://github.com/kak-tus/ami and Redis Cluster Streams https://redis.io/topics/streams-intro) Clickhouse writer.
+Package message - message object for Ruthie - reliable (with Ami https://github.com/kak-tus/ami and Redis Cluster Streams https://redis.io/topics/streams-intro) ClickHouse batch writer.
 
 Usage example
 

@@ -59,7 +59,6 @@ func main() {
 	wrt.Stop()
 
 	_ = log.Sync()
-
 }
 
 func status() (healthcheck.State, string) {
